@@ -6,25 +6,29 @@ on:
   workflow_dispatch:
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # Suppress Node 20 deprecation warning (temp fix)
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
+
   android-aab:
     runs-on: ubuntu-latest
+
     env:
-      MYAPP_UPLOAD_STORE_PASSWORD:   ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
-      MYAPP_UPLOAD_KEY_ALIAS:       ${{ secrets.MYAPP_UPLOAD_KEY_ALIAS }}
-      MYAPP_UPLOAD_KEY_PASSWORD:    ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
-      FIREBASE_PROJECT_ID:          ${{ secrets.FIREBASE_PROJECT_ID }}
-      FIREBASE_CLIENT_EMAIL:        ${{ secrets.FIREBASE_CLIENT_EMAIL }}
-      FIREBASE_PRIVATE_KEY:         ${{ secrets.FIREBASE_PRIVATE_KEY }}
+      MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
+      MYAPP_UPLOAD_KEY_ALIAS: ${{ secrets.MYAPP_UPLOAD_KEY_ALIAS }}
+      MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: npm
+
       - run: npm ci
 
       - name: Build web + sync Android
@@ -33,7 +37,7 @@ jobs:
           npx cap add android || true
           npx cap sync android -- --clean
 
-      - name: Fix duplicate splash (delete png if exists)
+      - name: Fix duplicate splash
         run: rm -f android/app/src/main/res/drawable/splash.png || true
 
       - name: Decode Keystore
@@ -57,22 +61,18 @@ jobs:
           name: CONIV-Android-Release-AAB
           path: android/app/build/outputs/bundle/release/app-release.aab
 
+
   ios-ipa:
     runs-on: macos-latest
-    env:
-      MYAPP_UPLOAD_STORE_PASSWORD:   ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
-      MYAPP_UPLOAD_KEY_ALIAS:       ${{ secrets.MYAPP_UPLOAD_KEY_ALIAS }}
-      MYAPP_UPLOAD_KEY_PASSWORD:    ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
-      FIREBASE_PROJECT_ID:          ${{ secrets.FIREBASE_PROJECT_ID }}
-      FIREBASE_CLIENT_EMAIL:        ${{ secrets.FIREBASE_CLIENT_EMAIL }}
-      FIREBASE_PRIVATE_KEY:         ${{ secrets.FIREBASE_PRIVATE_KEY }}
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: npm
+
       - run: npm ci
 
       - name: Build web + sync iOS
@@ -81,67 +81,74 @@ jobs:
           npx cap add ios || true
           npx cap sync ios
 
-      - name: Install Pods
+      - name: Install CocoaPods
         run: |
           cd ios/App
           pod install
 
-      - name: Create ExportOptions.plist (development / simulator-friendly)
+      - name: Create ExportOptions.plist
         run: |
-          mkdir -p ios/App/build
-          cat <<EOF > ios/App/ExportOptions.plist
+          mkdir -p ios/build
+          cat <<EOF > ios/ExportOptions.plist
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
-              <key>method</key>
-              <string>development</string>
-              <key>compileBitcode</key>
-              <false/>
-              <key>signingStyle</key>
-              <string>manual</string>
+            <key>method</key>
+            <string>development</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>compileBitcode</key>
+            <false/>
           </dict>
           </plist>
           EOF
 
-      - name: Archive for Simulator (no real signing needed)
+      - name: Build Archive
         run: |
           cd ios/App
-          xcodebuild clean archive \
-            -workspace App.xcworkspace \
-            -scheme App \
-            -configuration Release \
-            -destination 'generic/platform=iOS Simulator' \
-            -archivePath "$PWD/build/App.xcarchive"
+          xcodebuild \
+          -workspace App.xcworkspace \
+          -scheme App \
+          -configuration Release \
+          -destination generic/platform=iOS \
+          -archivePath build/App.xcarchive \
+          archive \
+          CODE_SIGNING_ALLOWED=NO
 
-      - name: Export Simulator IPA
+      - name: Export IPA
         run: |
           cd ios/App
-          xcodebuild -exportArchive \
-            -archivePath "$PWD/build/App.xcarchive" \
-            -exportPath "$PWD/build" \
-            -exportOptionsPlist ExportOptions.plist
+          xcodebuild \
+          -exportArchive \
+          -archivePath build/App.xcarchive \
+          -exportPath build \
+          -exportOptionsPlist ../ExportOptions.plist \
+          CODE_SIGNING_ALLOWED=NO
 
-      - name: Upload IPA (simulator build)
-        if: always()
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: CONIV-iOS-IPA-Simulator
+          name: CONIV-iOS-IPA
           path: ios/App/build/*.ipa
+
 
   android-apk:
     runs-on: ubuntu-latest
+
     env:
-      FIREBASE_PROJECT_ID:     ${{ secrets.FIREBASE_PROJECT_ID }}
-      FIREBASE_CLIENT_EMAIL:   ${{ secrets.FIREBASE_CLIENT_EMAIL }}
-      FIREBASE_PRIVATE_KEY:    ${{ secrets.FIREBASE_PRIVATE_KEY }}
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: npm
+
       - run: npm ci
 
       - name: Build web + sync Android
@@ -172,21 +179,26 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 7
 
+
   windows:
     runs-on: windows-latest
+
     env:
-      FIREBASE_PROJECT_ID:     ${{ secrets.FIREBASE_PROJECT_ID }}
-      FIREBASE_CLIENT_EMAIL:   ${{ secrets.FIREBASE_CLIENT_EMAIL }}
-      FIREBASE_PRIVATE_KEY:    ${{ secrets.FIREBASE_PRIVATE_KEY }}
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: npm
+
       - run: npm ci
       - run: npm run build-win
+
       - uses: actions/upload-artifact@v4
         with:
           name: CONIV-Windows-EXE
