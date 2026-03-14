@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # Suppress Node 20 deprecation warning (temp fix)
+
 jobs:
   android-aab:
     runs-on: ubuntu-latest
@@ -30,7 +33,7 @@ jobs:
           npx cap add android || true
           npx cap sync android -- --clean
 
-      - name: Fix duplicate splash resource (delete splash.png)
+      - name: Fix duplicate splash (delete png if exists)
         run: rm -f android/app/src/main/res/drawable/splash.png || true
 
       - name: Decode Keystore
@@ -83,7 +86,7 @@ jobs:
           cd ios/App
           pod install
 
-      - name: Create ExportOptions.plist (development)
+      - name: Create ExportOptions.plist (development / simulator-friendly)
         run: |
           mkdir -p ios/App/build
           cat <<EOF > ios/App/ExportOptions.plist
@@ -97,34 +100,33 @@ jobs:
               <false/>
               <key>signingStyle</key>
               <string>manual</string>
-              <key>teamID</key>
-              <string>YOUR_TEAM_ID_HERE_IF_KNOWN</string> <!-- optional fallback -->
           </dict>
           </plist>
           EOF
 
-      - name: Build & Export IPA (with provisioning updates)
+      - name: Archive for Simulator (no real signing needed)
         run: |
           cd ios/App
           xcodebuild clean archive \
             -workspace App.xcworkspace \
             -scheme App \
             -configuration Release \
-            -archivePath "$PWD/build/App.xcarchive" \
-            -allowProvisioningUpdates \
-            CODE_SIGN_STYLE=Manual || true   # continue even if signing partially fails
+            -destination 'generic/platform=iOS Simulator' \
+            -archivePath "$PWD/build/App.xcarchive"
 
+      - name: Export Simulator IPA
+        run: |
+          cd ios/App
           xcodebuild -exportArchive \
             -archivePath "$PWD/build/App.xcarchive" \
             -exportPath "$PWD/build" \
-            -exportOptionsPlist ExportOptions.plist \
-            -allowProvisioningUpdates || true
+            -exportOptionsPlist ExportOptions.plist
 
-      - name: Upload IPA (if exists)
+      - name: Upload IPA (simulator build)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CONIV-iOS-IPA
+          name: CONIV-iOS-IPA-Simulator
           path: ios/App/build/*.ipa
 
   android-apk:
@@ -148,7 +150,7 @@ jobs:
           npx cap add android || true
           npx cap sync android -- --clean
 
-      - name: Fix duplicate splash resource
+      - name: Fix duplicate splash
         run: rm -f android/app/src/main/res/drawable/splash.png || true
 
       - uses: actions/setup-java@v4
