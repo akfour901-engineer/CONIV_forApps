@@ -39,7 +39,7 @@ contractx-*.json
 *.tsbuildinfo
 next-env.d.ts
 
-.genkit/*
+
 .env*
 
 # firebase
@@ -48,7 +48,7 @@ firestore-debug.log
 .contractx-e3ab6-f51a92f71fe8.json*
 keystore.txtcontractx-*.json
 contractx-*.json
-*.json
+
 contractx-*.json
 node_modules/
 .env
