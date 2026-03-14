@@ -1,0 +1,144 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    function isTeamMember(ownerId) {
+      return exists(/databases/$(database)/documents/users/$(ownerId)/teamMembers/$(request.auth.uid));
+    }
+    function getTeamMemberPermissions(ownerId) {
+      return get(/databases/$(database)/documents/users/$(ownerId)/teamMembers/$(request.auth.uid)).data.permissions;
+    }
+
+    // Publicly readable collections
+    match /sorRates/{sorId} {
+      allow read: if resource.data.visibility == 'public';
+      allow write: if false; // Can only be written via server-side logic
+    }
+    match /organizations/{orgId} {
+      allow read: if resource.data.visibility == 'public';
+      allow write: if false;
+    }
+
+    // Unauthenticated lookups for sign-in/sign-up
+    match /users/{document=**} {
+        // Allow unauthenticated users to check if an email or phone number already exists during sign-up/sign-in.
+        // This rule is secure because it only allows a query for a single document, based on an exact match of email or phone.
+        allow list: if request.auth == null && request.query.limit == 1 && request.query.wheres.size() == 1 && (request.query.wheres[0][0] == "phoneNumber" || request.query.wheres[0][0] == "email");
+    }
+
+    // User-specific data
+    match /users/{userId}/{document=**} {
+      allow read, write: if isSignedIn() && isOwner(userId);
+    }
+
+    // Team member data
+    match /users/{ownerId}/teamMembers/{memberId} {
+      allow read, write: if isSignedIn() && isOwner(ownerId);
+      allow read: if isSignedIn() && request.auth.uid == memberId; // Member can read their own permissions
+    }
+    
+    // Data owned by a user, but accessible by their team members based on permissions
+    match /estimates/{estimateId} {
+      allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageEstimates));
+    }
+    match /workOrders/{workOrderId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageWorkOrders));
+    }
+    match /invoices/{invoiceId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageInvoices));
+    }
+    match /companies/{companyId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageCompanies));
+    }
+    match /organizations/{orgId} {
+        // Read is more permissive due to public visibility option
+        allow read: if resource.data.visibility == 'public' || (isSignedIn() && (isOwner(resource.data.userId) || isTeamMember(resource.data.userId)));
+        allow write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageOrganizations));
+    }
+    match /documents/{docId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageDocuments));
+    }
+    match /licenses/{licenseId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageOwnerLicenses));
+    }
+    match /sorRates/{sorRateId} {
+        allow read: if resource.data.visibility == 'public' || (isSignedIn() && (isOwner(resource.data.userId) || isTeamMember(resource.data.userId)));
+        allow write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageOwnerSORs));
+    }
+     match /expenses/{expenseId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageExpenses));
+    }
+    match /purchaseOrders/{poId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManagePurchaseOrders));
+    }
+    match /inventoryItems/{itemId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageInventory));
+    }
+    match /inventoryTransactions/{txId} {
+        allow read, write: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageInventory));
+    }
+     match /dailyProgressReports/{dprId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageDpr));
+    }
+     match /serviceVisitReports/{svrId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageSvr));
+    }
+     match /labourRegisters/{labourerId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageLabourRegister));
+    }
+     match /labourTimeLogs/{logId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canRecordLabourAttendance));
+    }
+     match /labourAdvances/{advanceId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageLabourPayments));
+    }
+    match /subcontractors/{subcontractorId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageSubcontractors));
+    }
+    match /chatMessages/{messageId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canUseProjectChat));
+    }
+    match /tasks/{taskId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canViewGanttCharts));
+    }
+    match /letters/{letterId} {
+        allow read, write, delete: if isSignedIn() && (isOwner(resource.data.userId) || isTeamMember(resource.data.userId)); // Broad access for team members for now
+    }
+    match /digitalBusinessCards/{cardId} {
+        allow read: true; // Publicly readable
+        allow write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageDigitalBusinessCards));
+    }
+    match /listingItems/{listingId} {
+        allow read: if resource.data.status == 'active'; // Only active listings are public
+        allow write, delete: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canManageListings));
+    }
+    
+    // ADMIN ONLY collections (and user-specific access)
+    match /activityLogs/{logId} {
+        allow read: if isSignedIn() && (isOwner(resource.data.userId) || (isTeamMember(resource.data.userId) && getTeamMemberPermissions(resource.data.userId).canViewActivityLog) || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true);
+        allow write: if false; // Server-side only
+    }
+    match /emailLogs/{logId} {
+        allow read: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+        allow write: if false; // Server-side only
+    }
+     match /userSubmissions/{submissionId} {
+        allow read: if isSignedIn() && isOwner(resource.data.userId);
+        allow create: if isSignedIn();
+        allow update: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+     match /paymentTransactions/{txId} {
+        allow read: if isSignedIn() && (isOwner(resource.data.userId) || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true);
+        allow write: if false; // Server-side only
+    }
+    
+  }
+}

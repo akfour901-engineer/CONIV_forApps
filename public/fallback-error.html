@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Error – CONIV</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f8fafc;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1e293b;
+    }
+    .card {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 90%;
+      width: 460px;
+    }
+    h1 { color: #dc2626; margin-bottom: 0.5rem; font-size: 2.5rem; }
+    p { color: #475569; margin: 0.5rem 0 1.5rem; font-size: 1.1rem; }
+    button {
+      background: #0f766e;
+      color: white;
+      border: none;
+      padding: 0.9rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    button:hover { background: #0d9488; }
+    svg { margin-bottom: 1.5rem; width: 90px; height: 90px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M80 20 C 40 20 20 40 20 80 L 20 20 C 20 40 40 20 80 20 Z" fill="#dc2626" opacity="0.1"/>
+      <circle cx="50" cy="50" r="35" stroke="#dc2626" stroke-width="10" fill="none"/>
+      <line x1="35" y1="35" x2="65" y2="65" stroke="#dc2626" stroke-width="10" stroke-linecap="round"/>
+      <line x1="35" y1="65" x2="65" y2="35" stroke="#dc2626" stroke-width="10" stroke-linecap="round"/>
+    </svg>
+
+    <h1>Something went wrong</h1>
+    <p>The page could not be loaded. This might be due to a temporary issue or a broken link.</p>
+    <p>Don't worry — your data is safe.</p>
+
+    <button onclick="window.location.reload()">Reload App</button>
+  </div>
+</body>
+</html>

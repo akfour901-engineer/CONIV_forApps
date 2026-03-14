@@ -1,0 +1,188 @@
+name: Build All (AAB + IPA + APK + EXE)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  # ==================== ANDROID RELEASE (AAB) ====================
+  android-aab:
+    runs-on: ubuntu-latest
+    env:
+      MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
+      MYAPP_UPLOAD_KEY_ALIAS: ${{ secrets.MYAPP_UPLOAD_KEY_ALIAS }}
+      MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm ci
+
+      - name: Build web + add & sync Android
+        run: |
+          npm run build-mobile
+          npx cap add android || true          # ← THIS FIXES YOUR ERROR
+          npx cap sync android -- --clean
+
+      - name: Decode Keystore
+        run: echo "${{ secrets.CONIV_KEYSTORE_BASE64 }}" | base64 --decode > android/app/coniv.keystore
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build AAB
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew clean
+          ./gradlew bundleRelease
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: CONIV-Android-Release-AAB
+          path: android/app/build/outputs/bundle/release/app-release.aab
+
+  # ==================== iOS (IPA) ====================
+  ios-ipa:
+    runs-on: macos-latest
+    env:
+      MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
+      MYAPP_UPLOAD_KEY_ALIAS: ${{ secrets.MYAPP_UPLOAD_KEY_ALIAS }}
+      MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm ci
+
+      - name: Build web + add & sync iOS
+        run: |
+          npm run build-mobile
+          npx cap add ios || true
+          npx cap sync ios
+
+      - name: Install Pods
+        run: |
+          cd ios/App
+          pod install
+
+      - name: Create ExportOptions.plist
+        run: |
+          mkdir -p ios/App/build
+          cat <<EOF > ios/App/ExportOptions.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>development</string>
+              <key>compileBitcode</key>
+              <false/>
+              <key>signingStyle</key>
+              <string>manual</string>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Build & Export IPA
+        run: |
+          cd ios/App
+          xcodebuild clean archive \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -archivePath "$PWD/build/App.xcarchive"
+          
+          xcodebuild -exportArchive \
+            -archivePath "$PWD/build/App.xcarchive" \
+            -exportPath "$PWD/build" \
+            -exportOptionsPlist ExportOptions.plist
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: CONIV-iOS-IPA
+          path: ios/App/build/*.ipa
+
+  # ==================== ANDROID DEBUG (APK) ====================
+  android-apk:
+    runs-on: ubuntu-latest
+    env:
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm ci
+
+      - name: Build web + add & sync Android
+        run: |
+          npm run build-mobile
+          npx cap add android || true          # ← THIS FIXES YOUR ERROR
+          npx cap sync android -- --clean
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build APK (Debug)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew clean
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CONIV-Android-Debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
+
+  # ==================== WINDOWS (EXE) ====================
+  windows:
+    runs-on: windows-latest
+    env:
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm ci
+
+      - name: Build Electron EXE
+        run: npm run build-win
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: CONIV-Windows-EXE
+          path: dist/*.exe
+          retention-days: 7

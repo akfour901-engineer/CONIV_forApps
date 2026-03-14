@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CONIV</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #EAF0F6; /* match manifest background_color – critical for no black/white flash */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, sans-serif;
+      color: #0f766e;
+    }
+    .logo-container {
+      animation: logo-vibrate 0.35s linear infinite both;
+    }
+    svg {
+      width: 140px;
+      height: 140px;
+    }
+    h1 {
+      font-size: 4.2rem;
+      font-weight: 900;
+      margin: 0.8rem 0 0.4rem;
+    }
+    .loading {
+      font-size: 1.4rem;
+      color: #475569;
+      margin-top: 1.3rem;
+    }
+    @keyframes logo-vibrate {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      10% { transform: translate(-5px, -4px) rotate(-6deg); }
+      20% { transform: translate(6px, -5px) rotate(7deg); }
+      30% { transform: translate(-6px, 5px) rotate(-7deg); }
+      40% { transform: translate(7px, -6px) rotate(8deg); }
+      50% { transform: translate(-7px, 6px) rotate(-8deg); }
+      60% { transform: translate(6px, -5px) rotate(7deg); }
+      70% { transform: translate(-6px, 5px) rotate(-7deg); }
+      80% { transform: translate(5px, -4px) rotate(6deg); }
+      90% { transform: translate(-4px, 4px) rotate(-5deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="logo-container">
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M80 20 C 40 20 20 40 20 80 L 20 20 C 20 40 40 20 80 20 Z" fill="#008080" opacity="0.15"/>
+      <path d="M75 25 C 45 25 25 45 25 75 C 25 45 45 25 75 25 Z"
+            stroke="#008080" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="40" y="40" width="30" height="8" rx="2" fill="#0066ff"/>
+      <rect x="40" y="52" width="8" height="20" rx="2" fill="#0066ff"/>
+    </svg>
+  </div>
+
+  <h1>CONIV</h1>
+  <div class="loading">Igniting engines...</div>
+
+  <script>
+    // 2 seconds → redirect to home
+    setTimeout(() => {
+      window.location.replace('/home');
+    }, 1000);
+  </script>
+</body>
+</html>

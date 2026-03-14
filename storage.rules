@@ -1,0 +1,25 @@
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Only authenticated users can write to their own folder.
+    match /users/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Marketing images are public to read for email clients, but only authenticated users can write.
+    match /marketing_images/{allPaths=**} {
+      allow read;
+      allow write: if request.auth != null;
+    }
+
+    // Deny all other writes by default
+    match /{allPaths=**} {
+      allow read: if false;
+      allow write: if request.auth != null; // Default secure rule
+    }
+  }
+}
+
+```

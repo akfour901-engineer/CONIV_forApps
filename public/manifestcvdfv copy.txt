@@ -1,0 +1,122 @@
+{
+  "name": "CONIV",
+  "short_name": "CONIV",
+  "description": "All-in-One Contracting Solution: Estimates, Work Orders, Invoices, Projects & More",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "window-controls-overlay",
+    "minimal-ui"
+  ],
+  "background_color": "#EAF0F6",
+  "theme_color": "#008080",
+  "orientation": "any",
+  "id": "/?utm_source=manifest",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": [
+    "business",
+    "productivity",
+    "finance",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Estimate",
+      "short_name": "Estimate",
+      "url": "/dashboard/estimates/new",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "New Work Order",
+      "short_name": "Work Order",
+      "url": "/dashboard/work-orders/new",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "New Invoice",
+      "short_name": "Invoice",
+      "url": "/dashboard/invoices/new",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "files",
+          "accept": ["image/*", "application/pdf", "*/*"]
+        }
+      ]
+    }
+  },
+  "screenshots": [
+    {
+      "src": "/screenshots/mobile-dashboard.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile Dashboard View"
+    },
+    {
+      "src": "/screenshots/mobile-dashboard.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile dashboard Page"
+    },
+    {
+      "src": "/screenshots/desktop-overview.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop Overview"
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Offline – CONIV</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f8fafc;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1e293b;
+    }
+    .card {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 90%;
+      width: 420px;
+    }
+    h1 { color: #0f766e; margin-bottom: 0.5rem; }
+    p { color: #64748b; margin: 0.5rem 0 1.5rem; }
+    button {
+      background: #0f766e;
+      color: white;
+      border: none;
+      padding: 0.9rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      min-width: 140px;
+    }
+    button:hover:not(:disabled) { background: #0d9488; }
+    button:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+    .spinner {
+      display: inline-block;
+      width: 1.2rem;
+      height: 1.2rem;
+      border: 3px solid white;
+      border-top: 3px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-left: 0.8rem;
+      vertical-align: middle;
+    }
+    svg { margin-bottom: 1.5rem; }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <svg viewBox="0 0 100 100" width="80" height="80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M80 20 C 40 20 20 40 20 80 L 20 20 C 20 40 40 20 80 20 Z" fill="#008080" opacity="0.15"/>
+      <path d="M75 25 C 45 25 25 45 25 75 C 25 45 45 25 75 25 Z"
+            stroke="#008080" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="40" y="40" width="30" height="8" rx="2" fill="#0066ff"/>
+      <rect x="40" y="52" width="8" height="20" rx="2" fill="#0066ff"/>
+    </svg>
+
+    <h1>You are Offline</h1>
+    <p>Please check your internet connection.</p>
+    <p>Either refresh the page or try after sometime.</p>
+
+    <button id="retryBtn">Retry</button>
+  </div>
+
+  <script>
+    const retryBtn = document.getElementById('retryBtn');
+
+    retryBtn.addEventListener('click', () => {
+      retryBtn.disabled = true;
+      retryBtn.innerHTML = 'Retrying<span class="spinner"></span>';
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
+    });
+  </script>
+</body>
+</html>
