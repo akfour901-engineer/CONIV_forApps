@@ -1,1 +1,102 @@
+# =========================
+
+# Firebase / Service Keys
+
+# =========================
+
 contractx-*.json
+firebase-*.json
+*.firebase.json
+
+# =========================
+
+# Android Signing Keys
+
+# =========================
+
+*.keystore
+*.jks
+*.pem
+android/app/*.keystore
+android/app/*.jks
+
+# =========================
+
+# Node / Next.js
+
+# =========================
+
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# =========================
+
+# Environment variables
+
+# =========================
+
+.env
+.env.local
+.env.production
+.env.development
+
+# =========================
+
+# Logs
+
+# =========================
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+
+# OS files
+
+# =========================
+
+.DS_Store
+Thumbs.db
+
+# =========================
+
+# IDE files
+
+# =========================
+
+.vscode/
+.idea/
+
+# =========================
+
+# Capacitor / Native builds
+
+# =========================
+
+android/.gradle/
+android/build/
+android/app/build/
+ios/build/
+
+# =========================
+
+# Windows build
+
+# =========================
+
+*.exe
+*.msi
+
+# =========================
+
+# Temporary files
+
+# =========================
+
+tmp/
+temp/
+*.tmp
