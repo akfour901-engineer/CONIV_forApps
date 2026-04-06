@@ -1,4 +1,3 @@
-
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,9 +20,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft, KeyRound, ShieldCheck } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import type { SendPasswordResetOtpOutputSchema } from '@/ai/flows/send-password-reset-otp-flow';
-import type { VerifyPasswordResetOtpOutputSchema } from '@/ai/flows/verify-password-reset-otp-flow';
-import type { ResetPasswordWithTokenOutputSchema } from '@/ai/flows/reset-password-with-token-flow';
+import type { SendPasswordResetOtpOutputSchema } from '@/types/server-only';
+import type { VerifyPasswordResetOtpOutputSchema } from '@/types/server-only';
+import type { ResetPasswordWithTokenOutputSchema } from '@/types/server-only';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -95,7 +94,7 @@ export function ResetPasswordForm({
       toast({ title: "OTP Resent", description: result.message });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
-      setCooldown(0); // Reset cooldown on error
+      setCooldown(0);
     } finally {
       setIsLoading(false);
     }
@@ -168,7 +167,12 @@ export function ResetPasswordForm({
                     <FormControl>
                       <InputOTP maxLength={6} {...field}>
                         <InputOTPGroup>
-                          <InputOTPSlot index={0} /> <InputOTPSlot index={1} /> <InputOTPSlot index={2} />
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
                         </InputOTPGroup>
                       </InputOTP>
                     </FormControl>

@@ -20,7 +20,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import React, { useState } from 'react';
-import type { SendPasswordResetOtpOutputSchema } from '@/ai/flows/send-password-reset-otp-flow';
+import type { SendPasswordResetOtpOutputSchema } from '@/types/server-only';
+
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),

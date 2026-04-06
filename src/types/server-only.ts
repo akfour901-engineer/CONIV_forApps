@@ -402,6 +402,7 @@ export const MAILING_LIST_MEMBERSHIP_COST = 0.5;
 export const MAILING_LIST_EMAIL_SEND_COST = 2;
 
 // ────────────────────────────────────────────────
+// ────────────────────────────────────────────────
 // Auth Schemas
 export const SendPasswordResetOtpInputSchema = z.object({
   email: z.string().email(),
@@ -412,21 +413,46 @@ export const SendPasswordResetOtpOutputSchema = z.object({
   message: z.string(),
 });
 
+export const SendEmailOtpOutputSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+});
+
+export const VerifyOtpAndCreateUserInputSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+  fullName: z.string().min(2),
+  phoneNumber: z.string().optional().nullable(),
+  emailOtp: z.string().min(6).max(6).optional().nullable(),
+  phoneOtp: z.string().min(6).max(6).optional().nullable(),
+});
+
+export const VerifyOtpAndCreateUserOutputSchema = z.object({
+  success: z.boolean(),
+  userId: z.string().optional(),
+  error: z.string().optional(),
+});
+
+// Keep your other auth schemas below if they exist...
 export const VerifyPasswordResetOtpInputSchema = z.object({
   email: z.string().email(),
   otp: z.string().min(6).max(6),
 });
 
-export const VerifyPasswordResetOtpOutputSchema = z.object({
-  success: z.boolean(),
-  token: z.string().optional(),
-  error: z.string().optional(),
-});
+
 
 export const ResetPasswordWithTokenInputSchema = z.object({
   email: z.string().email(),
   token: z.string().uuid(),
   newPassword: z.string().min(6),
+});
+
+
+
+export const VerifyPasswordResetOtpOutputSchema = z.object({
+  success: z.boolean(),
+  token: z.string().optional(),
+  error: z.string().optional(),
 });
 
 export const ResetPasswordWithTokenOutputSchema = z.object({

@@ -28,8 +28,9 @@ import { Mail, ArrowLeft, Loader2, UserPlus, ShieldCheck } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import type { SendEmailOtpOutputSchema } from '@/ai/flows/send-email-otp-flow';
-import type { VerifyOtpAndCreateUserOutputSchema } from '@/ai/flows/verify-otp-and-create-user-flow';
+import type { SendEmailOtpOutputSchema } from '@/types/server-only';
+import type { VerifyOtpAndCreateUserOutputSchema } from '@/types/server-only';
+
 import { useLoading } from '@/contexts/loading-context';
 
 const MAX_STEPS = 2;
@@ -166,30 +167,30 @@ export function SignUpForm({ sendEmailOtpAction, verifyAndCreateUserAction }: Si
             </div>
             
             <div style={{ display: currentStep === 2 ? 'block' : 'none' }}>
-              <FormField
-                control={form.control}
-                name="otp"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Verification Code</FormLabel>
-                    <FormControl>
-                      <InputOTP maxLength={6} {...field}>
-                        <InputOTPGroup>
-                          <InputOTPSlot index={0} />
-                          <InputOTPSlot index={1} />
-                          <InputOTPSlot index={2} />
-                          <InputOTPSlot index={3} />
-                          <InputOTPSlot index={4} />
-                          <InputOTPSlot index={5} />
-                        </InputOTPGroup>
-                      </InputOTP>
-                    </FormControl>
-                    <FormDescription>Please enter the 6-digit code sent to your email.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+  <FormField
+    control={form.control}
+    name="otp"
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>Verification Code</FormLabel>
+        <FormControl>
+          <InputOTP maxLength={6} {...field}>
+            <InputOTPGroup>
+              <InputOTPSlot index={0} />
+              <InputOTPSlot index={1} />
+              <InputOTPSlot index={2} />
+              <InputOTPSlot index={3} />
+              <InputOTPSlot index={4} />
+              <InputOTPSlot index={5} />
+            </InputOTPGroup>
+          </InputOTP>
+        </FormControl>
+        <FormDescription>Please enter the 6-digit code sent to your email.</FormDescription>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+</div>
           </CardContent>
           <CardFooter className="flex flex-col gap-2">
             {currentStep === 1 && <Button type="button" className="w-full" onClick={handleNextStep} disabled={isSendingOtp}>{isSendingOtp ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Sending OTP...</>) : (<><Mail className="mr-2 h-4 w-4"/>Send Verification Code</>)}</Button>}

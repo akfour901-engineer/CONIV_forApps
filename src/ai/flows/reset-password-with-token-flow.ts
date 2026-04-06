@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Resets a user's password after successful OTP and token verification.
@@ -6,9 +5,11 @@
 import { z } from 'zod';
 import { ai } from '@/ai/genkit';
 import { getDb, getAuth } from '@/lib/firebase-admin-init';
-import { ResetPasswordWithTokenInputSchema, ResetPasswordWithTokenOutputSchema as LocalResetPasswordWithTokenOutputSchema } from '@/types/server-only';
 
-export const ResetPasswordWithTokenOutputSchema = LocalResetPasswordWithTokenOutputSchema;
+import { 
+  ResetPasswordWithTokenInputSchema, 
+  ResetPasswordWithTokenOutputSchema 
+} from '@/types/server-only';
 
 const resetPasswordWithTokenFlow = ai.defineFlow(
   {
@@ -30,7 +31,6 @@ const resetPasswordWithTokenFlow = ai.defineFlow(
       
       const otpData = otpSnap.data();
 
-      // Security Checks
       if (otpData?.resetToken !== token) {
         return { success: false, error: 'Invalid or expired reset token.' };
       }
@@ -38,20 +38,14 @@ const resetPasswordWithTokenFlow = ai.defineFlow(
         return { success: false, error: 'Your password reset session has expired. Please try again.' };
       }
       
-      // Get user from Auth by email
       const userRecord = await adminAuth.getUserByEmail(email);
       
-      // Update password in Firebase Authentication
-      await adminAuth.updateUser(userRecord.uid, {
-        password: newPassword,
-      });
+      await adminAuth.updateUser(userRecord.uid, { password: newPassword });
 
-      // After successful password change, update the corresponding user document in Firestore.
       await adminDb.collection('users').doc(userRecord.uid).set({
         lastPasswordChangeDate: new Date().toISOString(),
       }, { merge: true });
 
-      // Invalidate the OTP token by deleting the document
       await otpRef.delete();
       
       return { success: true };
@@ -60,10 +54,8 @@ const resetPasswordWithTokenFlow = ai.defineFlow(
       if (error.code === 'auth/user-not-found') {
         return { success: false, error: 'No user found with this email address.' };
       }
-      if (error.code === 5) { // Firestore NOT_FOUND error
-        console.error("Firestore 'NOT_FOUND' error. This might happen if a user exists in Auth but not in the 'users' collection. The password was reset, but profile update failed.");
-        // The password was reset, but the profile update failed. We can still return success to the user.
-        // The OTP token will be cleaned up on next login if needed.
+      if (error.code === 5) {
+        console.error("Firestore 'NOT_FOUND' error.");
         return { success: true };
       }
       return { success: false, error: error.message || 'An unexpected server error occurred.' };
